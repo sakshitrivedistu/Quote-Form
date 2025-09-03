@@ -195,24 +195,32 @@
         ]
       };
 
-      try {
-        const response = await fetch("https://quotecreation-ffh8e4cxckh7fuej.centralindia-01.azurewebsites.net/api/HttpTrigger1", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(postData)
-        });
+     try {
+  const response = await fetch("https://quotecreation-ffh8e4cxckh7fuej.centralindia-01.azurewebsites.net/api/HttpTrigger1?", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(postData)
+  });
 
-        const result = await response.text();
-        document.getElementById("result").style.color = "green";
-        document.getElementById("result").textContent = result;
-      } catch (error) {
-        document.getElementById("result").style.color = "red";
-        document.getElementById("result").textContent = "Error: " + error.message;
-      }
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Server returned ${response.status}: ${errorText}`);
+  }
+
+  const result = await response.text();
+  document.getElementById("result").style.color = "green";
+  document.getElementById("result").textContent = result;
+} catch (error) {
+  console.error("Error during fetch:", error);
+  document.getElementById("result").style.color = "red";
+  document.getElementById("result").textContent = "Fetch Error: " + error.message;
+}
+
     });
   </script>
 </body>
 </html>
+
 
