@@ -135,19 +135,43 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
-    const data = {
-      vendorNo: params.get('vendorNo'),
-      indentNo: params.get('indentNo'),
-      itemNo: params.get('itemNo'),
-      description: params.get('description'),
-      qty: params.get('qty'),
-      uom: params.get('uom'),
-      dueDate: params.get('dueDate')
-    };
 
-    for (const key in data) {
-      document.getElementById(key).textContent = data[key] || '';
+    const vendorNo = params.get('vendorNo');
+    const indentNo = params.get('indentNo');
+    const linesParam = params.get('lines');
+
+    let itemDetails = {};
+
+    try {
+      if (linesParam) {
+        const decoded = decodeURIComponent(linesParam);
+        const linesArray = JSON.parse(decoded);
+        if (Array.isArray(linesArray) && linesArray.length > 0) {
+          itemDetails = linesArray[0];
+        }
+      }
+    } catch (err) {
+      console.error("Failed to parse lines param:", err);
     }
+
+    // Populate fields
+    document.getElementById("vendorNo").textContent = vendorNo || '';
+    document.getElementById("indentNo").textContent = indentNo || '';
+    document.getElementById("itemNo").textContent = itemDetails.itemNo || '';
+    document.getElementById("description").textContent = itemDetails.description || '';
+    document.getElementById("qty").textContent = itemDetails.quantity || '';
+    document.getElementById("uom").textContent = itemDetails.uom || '';
+    document.getElementById("dueDate").textContent = itemDetails.expectedReceiptDate || '';
+
+    const data = {
+      vendorNo: vendorNo,
+      indentNo: indentNo,
+      itemNo: itemDetails.itemNo,
+      description: itemDetails.description,
+      qty: itemDetails.quantity,
+      uom: itemDetails.uom,
+      dueDate: itemDetails.expectedReceiptDate
+    };
 
     document.getElementById("quoteForm").addEventListener("submit", async function (e) {
       e.preventDefault();
