@@ -175,7 +175,9 @@
 
     document.getElementById("quoteForm").addEventListener("submit", async function (e) {
       e.preventDefault();
-
+const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...'; 
       const postData = {
         vendorNo: data.vendorNo,
         indentNo: data.indentNo,
@@ -222,5 +224,6 @@
   </script>
 </body>
 </html>
+
 
 
