@@ -215,6 +215,9 @@ const submitBtn = this.querySelector('button[type="submit"]');
   document.getElementById("result").style.color = "green";
   document.getElementById("result").textContent = result;
 } catch (error) {
+    
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Send Quotation'
   console.error("Error during fetch:", error);
   document.getElementById("result").style.color = "red";
   document.getElementById("result").textContent = "Fetch Error: " + error.message;
@@ -224,6 +227,7 @@ const submitBtn = this.querySelector('button[type="submit"]');
   </script>
 </body>
 </html>
+
 
 
 
