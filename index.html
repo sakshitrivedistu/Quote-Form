@@ -214,6 +214,9 @@ const submitBtn = this.querySelector('button[type="submit"]');
   const result = await response.text();
   document.getElementById("result").style.color = "green";
   document.getElementById("result").textContent = result;
+       setTimeout(() => {
+  window.close();
+}, 1500);
          window.history.replaceState(null, null, window.location.href);
 } catch (error) {
     
@@ -233,6 +236,7 @@ const submitBtn = this.querySelector('button[type="submit"]');
   </script>
 </body>
 </html>
+
 
 
 
