@@ -180,13 +180,25 @@
           throw new Error(`Server returned ${response.status}: ${errorText}`);
         }
 
-        const result = await response.text();
-        document.getElementById("result").style.color = "green";
-        document.getElementById("result").textContent = result;
+       const resultText = await response.text();
+const resultEl = document.getElementById("result");
 
-        setTimeout(() => {
-          window.close();
-        }, 1500);
+if (resultText.includes("already exists")) {
+  resultEl.style.color = "#d48806"; // amber/orange
+  resultEl.textContent = "A quote already exists for this Vendor and Indent No.";
+} else if (resultText.includes("successfully")) {
+  resultEl.style.color = "green";
+  resultEl.textContent = resultText;
+
+  // Auto-close only on success
+  setTimeout(() => {
+    window.close();
+  }, 1500);
+} else {
+  resultEl.style.color = "red";
+  resultEl.textContent = resultText;
+}
+
 
       } catch (error) {
         submitBtn.disabled = false;
@@ -204,4 +216,5 @@
   </script>
 </body>
 </html>
+
 
