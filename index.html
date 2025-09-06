@@ -134,108 +134,112 @@
   </div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
+  const vendorNo = params.get('vendorNo');
+  const indentNo = params.get('indentNo');
+  const linesParam = params.get('lines');
 
-    const vendorNo = params.get('vendorNo');
-    const indentNo = params.get('indentNo');
-    const linesParam = params.get('lines');
+  let linesArray = [];
 
-    let itemDetails = {};
-
-    try {
-      if (linesParam) {
-        const decoded = decodeURIComponent(linesParam);
-        const linesArray = JSON.parse(decoded);
-        if (Array.isArray(linesArray) && linesArray.length > 0) {
-          itemDetails = linesArray[0];
-        }
-      }
-    } catch (err) {
-      console.error("Failed to parse lines param:", err);
+  try {
+    if (linesParam) {
+      const decoded = decodeURIComponent(linesParam);
+      linesArray = JSON.parse(decoded);
     }
-
-    // Populate fields
-    document.getElementById("vendorNo").textContent = vendorNo || '';
-    document.getElementById("indentNo").textContent = indentNo || '';
-    document.getElementById("itemNo").textContent = itemDetails.itemNo || '';
-    document.getElementById("description").textContent = itemDetails.description || '';
-    document.getElementById("qty").textContent = itemDetails.quantity || '';
-    document.getElementById("uom").textContent = itemDetails.uom || '';
-    document.getElementById("dueDate").textContent = itemDetails.expectedReceiptDate || '';
-
-    const data = {
-      vendorNo: vendorNo,
-      indentNo: indentNo,
-      itemNo: itemDetails.itemNo,
-      description: itemDetails.description,
-      qty: itemDetails.quantity,
-      uom: itemDetails.uom,
-      dueDate: itemDetails.expectedReceiptDate
-    };
-
-    document.getElementById("quoteForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-const submitBtn = this.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitted'; 
-      const postData = {
-        vendorNo: data.vendorNo,
-        indentNo: data.indentNo,
-        documentType: "Quote",
-        lines: [
-          {
-            itemNo: data.itemNo,
-            description: data.description,
-            quantity: Number(data.qty),
-            uom: data.uom,
-            expectedReceiptDate: document.getElementById("vendorDeliveryDate").value,
-            unitPrice: parseFloat(document.getElementById("unitPrice").value),
-            warranty: document.getElementById("warranty").value,
-            stockInHand: parseInt(document.getElementById("stockInHand").value),
-            vendorItemNo: document.getElementById("vendorItemNo").value
-          }
-        ]
-      };
-
-     try {
-  const response = await fetch("https://quotecreation-ffh8e4cxckh7fuej.centralindia-01.azurewebsites.net/api/HttpTrigger1?", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(postData)
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Server returned ${response.status}: ${errorText}`);
+  } catch (err) {
+    console.error("Failed to parse lines param:", err);
   }
 
-  const result = await response.text();
-  document.getElementById("result").style.color = "green";
-  document.getElementById("result").textContent = result;
-       setTimeout(() => {
-  window.close();
-}, 1500);
-         window.history.replaceState(null, null, window.location.href);
-} catch (error) {
-    
-  submitBtn.disabled = false;
-  submitBtn.textContent = 'Send Quotation'
-  console.error("Error during fetch:", error);
-  document.getElementById("result").style.color = "red";
-  document.getElementById("result").textContent = "Fetch Error: " + error.message;
-}
+  // Display each item with its vendor input section
+  const container = document.getElementById("itemsContainer");
 
-    });
-     window.addEventListener("pageshow", function (event) {
+  linesArray.forEach((item, index) => {
+    const itemHTML = `
+      <table>
+        <tr><th colspan="2">Item ${index + 1}</th></tr>
+        <tr><td>Vendor No</td><td>${vendorNo}</td></tr>
+        <tr><td>Indent No</td><td>${indentNo}</td></tr>
+        <tr><td>Item No</td><td>${item.itemNo}</td></tr>
+        <tr><td>Description</td><td>${item.description}</td></tr>
+        <tr><td>Quantity</td><td>${item.quantity}</td></tr>
+        <tr><td>UOM</td><td>${item.uom}</td></tr>
+        <tr><td>Expected Delivery</td><td>${item.expectedReceiptDate}</td></tr>
+
+        <tr><td>Unit Price</td><td><input type="number" step="0.01" required name="unitPrice_${index}"></td></tr>
+        <tr><td>Warranty</td><td><input type="text" required name="warranty_${index}"></td></tr>
+        <tr><td>Stock in Hand</td><td><input type="number" required name="stock_${index}"></td></tr>
+        <tr><td>Vendor Item No</td><td><input type="text" required name="vendorItemNo_${index}"></td></tr>
+        <tr><td>Delivery Date</td><td><input type="date" required name="deliveryDate_${index}"></td></tr>
+      </table>
+      <br />
+    `;
+    container.innerHTML += itemHTML;
+  });
+
+  document.getElementById("quoteForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitted';
+
+    // Collect all lines with vendor inputs
+    const linesToSubmit = linesArray.map((item, index) => ({
+      itemNo: item.itemNo,
+      description: item.description,
+      quantity: Number(item.quantity),
+      uom: item.uom,
+      expectedReceiptDate: document.getElementsByName(`deliveryDate_${index}`)[0].value,
+      unitPrice: parseFloat(document.getElementsByName(`unitPrice_${index}`)[0].value),
+      warranty: document.getElementsByName(`warranty_${index}`)[0].value,
+      stockInHand: parseInt(document.getElementsByName(`stock_${index}`)[0].value),
+      vendorItemNo: document.getElementsByName(`vendorItemNo_${index}`)[0].value
+    }));
+
+    const postData = {
+      vendorNo: vendorNo,
+      indentNo: indentNo,
+      documentType: "Quote",
+      lines: linesToSubmit
+    };
+
+    try {
+      const response = await fetch("https://quotecreation-ffh8e4cxckh7fuej.centralindia-01.azurewebsites.net/api/HttpTrigger1?", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(postData)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.text();
+      document.getElementById("result").style.color = "green";
+      document.getElementById("result").textContent = result;
+      setTimeout(() => window.close(), 1500);
+      window.history.replaceState(null, null, window.location.href);
+    } catch (error) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Quotation';
+      document.getElementById("result").style.color = "red";
+      document.getElementById("result").textContent = "Fetch Error: " + error.message;
+    }
+  });
+
+  // Force reload on back navigation to avoid duplicate
+  window.addEventListener("pageshow", function (event) {
     if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
       window.location.reload();
     }
   });
-  </script>
+</script>
+
 </body>
 </html>
+
 
 
 
