@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Quotation Form</title>
+  <title>Quotation Submission</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -13,7 +13,7 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 800px;
       margin: 30px auto;
       background-color: #fff;
       padding: 20px;
@@ -24,7 +24,7 @@
 
     h2 {
       text-align: center;
-      font-size: 18px;
+      font-size: 20px;
       margin-bottom: 10px;
     }
 
@@ -70,7 +70,9 @@
       font-size: 14px;
       border-radius: 4px;
       cursor: pointer;
-      width: 25%;
+      width: 30%;
+      margin: auto;
+      display: block;
     }
 
     button:hover {
@@ -84,61 +86,35 @@
       font-size: 13px;
     }
 
-    @media (max-width: 480px) {
-      .container {
-        margin: 15px;
-        padding: 15px;
-        font-size: 13px;
-      }
-
-      table th, table td {
-        padding: 6px;
-      }
-
-      input, button {
-        font-size: 12px;
-      }
+    .item-block {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Quotation Submission</h2>
-    <p>Review item details and submit your quote:</p>
+<div class="container">
+  <h2>Quotation Submission</h2>
+  <p>Review item details and submit your quote:</p>
 
-    <form id="quoteForm">
-      <table>
-        <tr><th colspan="2">Item Details</th></tr>
-        <tr><td>Vendor No</td><td><span id="vendorNo"></span></td></tr>
-        <tr><td>Indent No</td><td><span id="indentNo"></span></td></tr>
-        <tr><td>Item No</td><td><span id="itemNo"></span></td></tr>
-        <tr><td>Description</td><td><span id="description"></span></td></tr>
-        <tr><td>Quantity</td><td><span id="qty"></span></td></tr>
-        <tr><td>UOM</td><td><span id="uom"></span></td></tr>
-        <tr><td>Expected Delivery</td><td><span id="dueDate"></span></td></tr>
-      </table>
+  <form id="quoteForm">
+    <div id="itemsContainer"></div>
 
-      <table>
-        <tr><th colspan="2">Vendor Inputs</th></tr>
-        <tr><td>Unit Price</td><td><input type="number" id="unitPrice" step="0.01" required></td></tr>
-        <tr><td>Warranty</td><td><input type="text" id="warranty" required></td></tr>
-        <tr><td>Stock in Hand</td><td><input type="number" id="stockInHand" required></td></tr>
-        <tr><td>Vendor Item No</td><td><input type="text" id="vendorItemNo" required></td></tr>
-        <tr><td>Delivery Date</td><td><input type="date" id="vendorDeliveryDate" required></td></tr>
-      </table>
+    <button type="submit">Send Quotation</button>
+  </form>
 
-      <button type="submit">Send Quotation</button>
-    </form>
+  <div id="result"></div>
+</div>
 
-    <div id="result"></div>
-  </div>
-
-  <script>
+<script>
   const params = new URLSearchParams(window.location.search);
   const vendorNo = params.get('vendorNo');
   const indentNo = params.get('indentNo');
   const linesParam = params.get('lines');
 
+  const itemsContainer = document.getElementById("itemsContainer");
   let linesArray = [];
 
   try {
@@ -148,58 +124,61 @@
     }
   } catch (err) {
     console.error("Failed to parse lines param:", err);
+    document.getElementById("result").textContent = "Error parsing item details.";
   }
 
-  // Display each item with its vendor input section
-  const container = document.getElementById("itemsContainer");
-
   linesArray.forEach((item, index) => {
-    const itemHTML = `
-      <table>
-        <tr><th colspan="2">Item ${index + 1}</th></tr>
-        <tr><td>Vendor No</td><td>${vendorNo}</td></tr>
-        <tr><td>Indent No</td><td>${indentNo}</td></tr>
-        <tr><td>Item No</td><td>${item.itemNo}</td></tr>
-        <tr><td>Description</td><td>${item.description}</td></tr>
-        <tr><td>Quantity</td><td>${item.quantity}</td></tr>
-        <tr><td>UOM</td><td>${item.uom}</td></tr>
-        <tr><td>Expected Delivery</td><td>${item.expectedReceiptDate}</td></tr>
+    const itemHtml = `
+      <div class="item-block">
+        <table>
+          <tr><th colspan="2">Item ${index + 1}</th></tr>
+          <tr><td>Vendor No</td><td>${vendorNo}</td></tr>
+          <tr><td>Indent No</td><td>${indentNo}</td></tr>
+          <tr><td>Item No</td><td>${item.itemNo}</td></tr>
+          <tr><td>Description</td><td>${item.description}</td></tr>
+          <tr><td>Quantity</td><td>${item.quantity}</td></tr>
+          <tr><td>UOM</td><td>${item.uom}</td></tr>
+          <tr><td>Expected Delivery</td><td>${item.expectedReceiptDate}</td></tr>
+        </table>
 
-        <tr><td>Unit Price</td><td><input type="number" step="0.01" required name="unitPrice_${index}"></td></tr>
-        <tr><td>Warranty</td><td><input type="text" required name="warranty_${index}"></td></tr>
-        <tr><td>Stock in Hand</td><td><input type="number" required name="stock_${index}"></td></tr>
-        <tr><td>Vendor Item No</td><td><input type="text" required name="vendorItemNo_${index}"></td></tr>
-        <tr><td>Delivery Date</td><td><input type="date" required name="deliveryDate_${index}"></td></tr>
-      </table>
-      <br />
+        <table>
+          <tr><th colspan="2">Vendor Inputs</th></tr>
+          <tr><td>Unit Price</td><td><input type="number" step="0.01" name="unitPrice_${index}" required></td></tr>
+          <tr><td>Warranty</td><td><input type="text" name="warranty_${index}" required></td></tr>
+          <tr><td>Stock in Hand</td><td><input type="number" name="stockInHand_${index}" required></td></tr>
+          <tr><td>Vendor Item No</td><td><input type="text" name="vendorItemNo_${index}" required></td></tr>
+          <tr><td>Delivery Date</td><td><input type="date" name="vendorDeliveryDate_${index}" required></td></tr>
+        </table>
+      </div>
     `;
-    container.innerHTML += itemHTML;
+    itemsContainer.insertAdjacentHTML("beforeend", itemHtml);
   });
 
   document.getElementById("quoteForm").addEventListener("submit", async function (e) {
     e.preventDefault();
     const submitBtn = this.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitted';
+    submitBtn.textContent = "Submitted";
 
-    // Collect all lines with vendor inputs
-    const linesToSubmit = linesArray.map((item, index) => ({
-      itemNo: item.itemNo,
-      description: item.description,
-      quantity: Number(item.quantity),
-      uom: item.uom,
-      expectedReceiptDate: document.getElementsByName(`deliveryDate_${index}`)[0].value,
-      unitPrice: parseFloat(document.getElementsByName(`unitPrice_${index}`)[0].value),
-      warranty: document.getElementsByName(`warranty_${index}`)[0].value,
-      stockInHand: parseInt(document.getElementsByName(`stock_${index}`)[0].value),
-      vendorItemNo: document.getElementsByName(`vendorItemNo_${index}`)[0].value
-    }));
+    const filledLines = linesArray.map((item, index) => {
+      return {
+        itemNo: item.itemNo,
+        description: item.description,
+        quantity: Number(item.quantity),
+        uom: item.uom,
+        expectedReceiptDate: document.querySelector(`[name="vendorDeliveryDate_${index}"]`).value,
+        unitPrice: parseFloat(document.querySelector(`[name="unitPrice_${index}"]`).value),
+        warranty: document.querySelector(`[name="warranty_${index}"]`).value,
+        stockInHand: parseInt(document.querySelector(`[name="stockInHand_${index}"]`).value),
+        vendorItemNo: document.querySelector(`[name="vendorItemNo_${index}"]`).value
+      };
+    });
 
     const postData = {
       vendorNo: vendorNo,
       indentNo: indentNo,
       documentType: "Quote",
-      lines: linesToSubmit
+      lines: filledLines
     };
 
     try {
@@ -219,8 +198,9 @@
       const result = await response.text();
       document.getElementById("result").style.color = "green";
       document.getElementById("result").textContent = result;
-      setTimeout(() => window.close(), 1500);
-      window.history.replaceState(null, null, window.location.href);
+      setTimeout(() => {
+        window.close();
+      }, 1500);
     } catch (error) {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Send Quotation';
@@ -229,21 +209,11 @@
     }
   });
 
-  // Force reload on back navigation to avoid duplicate
   window.addEventListener("pageshow", function (event) {
     if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
       window.location.reload();
     }
   });
 </script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
